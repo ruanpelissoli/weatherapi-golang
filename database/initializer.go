@@ -7,6 +7,7 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func ConnectDB() *gorm.DB {
@@ -21,6 +22,11 @@ func ConnectDB() *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
+
+	db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "query"}},
+		DoUpdates: clause.AssignmentColumns([]string{"data"}),
+	})
 
 	return db
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/ruanpelissoli/weatherapi-golang/controller"
 	"github.com/ruanpelissoli/weatherapi-golang/database"
-	"github.com/ruanpelissoli/weatherapi-golang/middlewares"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -44,15 +43,8 @@ func main() {
 
 	r := gin.Default()
 
-	c := controller.NewController(DB, rdb)
-
-	v1 := r.Group("/api/v1")
-	{
-		weather := v1.Group("/weather")
-		{
-			weather.GET(":city", middlewares.CacheMiddleware(rdb), c.GetWeatherByCity)
-		}
-	}
+	controller.AddWeatherController(DB, rdb, r)
+	controller.AddRainController(r)
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	r.Run(":5001")

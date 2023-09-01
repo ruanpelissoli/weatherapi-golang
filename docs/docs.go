@@ -24,6 +24,47 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/rain": {
+            "get": {
+                "description": "get rain status",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rain"
+                ],
+                "summary": "Get rain status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
         "/weather/{city}": {
             "get": {
                 "description": "get weather by city",
@@ -90,7 +131,123 @@ const docTemplate = `{
             }
         },
         "model.Weather": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "current": {
+                    "type": "object",
+                    "properties": {
+                        "cloud": {
+                            "type": "integer"
+                        },
+                        "condition": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "icon": {
+                                    "type": "string"
+                                },
+                                "text": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "feelslike_c": {
+                            "type": "number"
+                        },
+                        "feelslike_f": {
+                            "type": "number"
+                        },
+                        "gust_kph": {
+                            "type": "number"
+                        },
+                        "gust_mph": {
+                            "type": "number"
+                        },
+                        "humidity": {
+                            "type": "integer"
+                        },
+                        "is_day": {
+                            "type": "integer"
+                        },
+                        "last_updated": {
+                            "type": "string"
+                        },
+                        "last_updated_epoch": {
+                            "type": "integer"
+                        },
+                        "precip_in": {
+                            "type": "number"
+                        },
+                        "precip_mm": {
+                            "type": "number"
+                        },
+                        "pressure_in": {
+                            "type": "number"
+                        },
+                        "pressure_mb": {
+                            "type": "number"
+                        },
+                        "temp_c": {
+                            "type": "number"
+                        },
+                        "temp_f": {
+                            "type": "number"
+                        },
+                        "uv": {
+                            "type": "number"
+                        },
+                        "vis_km": {
+                            "type": "number"
+                        },
+                        "vis_miles": {
+                            "type": "number"
+                        },
+                        "wind_degree": {
+                            "type": "integer"
+                        },
+                        "wind_dir": {
+                            "type": "string"
+                        },
+                        "wind_kph": {
+                            "type": "number"
+                        },
+                        "wind_mph": {
+                            "type": "number"
+                        }
+                    }
+                },
+                "location": {
+                    "type": "object",
+                    "properties": {
+                        "country": {
+                            "type": "string"
+                        },
+                        "lat": {
+                            "type": "number"
+                        },
+                        "localtime": {
+                            "type": "string"
+                        },
+                        "localtime_epoch": {
+                            "type": "integer"
+                        },
+                        "lon": {
+                            "type": "number"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "region": {
+                            "type": "string"
+                        },
+                        "tz_id": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
         }
     }
 }`

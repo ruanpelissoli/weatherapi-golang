@@ -1,26 +1,30 @@
 package controller
 
 import (
-	"context"
-	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
-	"github.com/ruanpelissoli/weatherapi-golang/database"
-	"github.com/ruanpelissoli/weatherapi-golang/model"
-	"github.com/ruanpelissoli/weatherapi-golang/weatherapi"
+	"github.com/ruanpelissoli/weatherapi-golang/handlers"
+	"github.com/ruanpelissoli/weatherapi-golang/middlewares"
 	"gorm.io/gorm"
 )
 
-type Controller struct {
-	DB  *gorm.DB
-	rdb *redis.Client
+type WeatherController struct {
+	Controller
+	handler *handlers.WeatherHandler
 }
 
-func NewController(db *gorm.DB, rdb *redis.Client) *Controller {
-	return &Controller{db, rdb}
+func AddWeatherController(db *gorm.DB, rdb *redis.Client, r *gin.Engine) {
+	c := &WeatherController{
+		Controller: Controller{},
+		handler:    handlers.NewWeatherHandler(db, rdb),
+	}
+
+	weather := r.Group("/weather")
+	{
+		weather.GET(":city", middlewares.CacheMiddleware(rdb), c.getWeatherByCity)
+	}
 }
 
 // GetWeatherByCity godoc
@@ -36,33 +40,15 @@ func NewController(db *gorm.DB, rdb *redis.Client) *Controller {
 //	@Failure		404	{object}	httputil.HTTPError
 //	@Failure		500	{object}	httputil.HTTPError
 //	@Router			/weather/{city} [get]
-func (c *Controller) GetWeatherByCity(ctx *gin.Context) {
+func (c *WeatherController) getWeatherByCity(ctx *gin.Context) {
 
 	city := ctx.Param("city")
 
-	weather, err := weatherapi.Call(city)
-
+	weather, err := c.handler.GetWeatherByCity(city)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
-	go insertWeather(city, weather, c)
-
 	ctx.JSON(http.StatusOK, weather)
-}
-
-func insertWeather(query string, responseBody model.Weather, c *Controller) {
-
-	w, _ := json.Marshal(responseBody)
-	weatherJson := string(w)
-
-	c.DB.Create(&database.WeatherEntity{Query: query, Data: weatherJson, CreatedAt: time.Now()})
-
-	ctx := context.Background()
-
-	err := c.rdb.Set(ctx, query, weatherJson, 30*time.Minute).Err()
-	if err != nil {
-		panic(err)
-	}
 }
